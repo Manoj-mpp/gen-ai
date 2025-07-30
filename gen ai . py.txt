@@ -1,0 +1,37 @@
+!pip install -q transformers
+
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+import torch
+
+# Load the model and tokenizer
+model_name = "google/flan-t5-base"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+
+# Function to query the model
+def ask_movie_info(title):
+    def query(prompt):
+        inputs = tokenizer(prompt, return_tensors="pt")
+        outputs = model.generate(**inputs, max_length=60)
+        return tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+    # Prompts
+    year_prompt = f"What year was the movie '{title}' released?"
+    rating_prompt = f"What is the IMDB rating of the movie '{title}' out of 10?"
+    summary_prompt = f"Give a one-line plot summary of the movie '{title}'."
+
+    # Responses
+    year = query(year_prompt)
+    rating = query(rating_prompt)
+    summary = query(summary_prompt)
+
+    return year, rating, summary
+
+# Example use
+title = input("Enter a movie title: ")
+year, rating, summary = ask_movie_info(title)
+
+print(f"\n'{title}' Information:")
+print(f"🗓️ Year Released: {year}")
+print(f"⭐ IMDB Rating: {rating}/10")
+print(f"📖 One-Line Summary: {summary}")
